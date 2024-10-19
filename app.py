@@ -84,15 +84,27 @@ def claim_nft(w3: web3.Web3, account: eth_account.signers.local.LocalAccount):
         'value': 0,
         'data': CONTRACT_METHOD,
         'chainId': CHAIN_ID,
-        'nonce': nonce
+        'nonce': nonce,
+        'gas': 300000,  # Adjusted gas limit based on trace
+        'gasPrice': gas_price
     }
     try:
-        gas_limit = w3.eth.estimate_gas(transaction)
-        transaction['gas'] = gas_limit
-        transaction['gasPrice'] = gas_price
+        # Estimate gas limit (to verify against the 300k gas setting)
+        estimated_gas = w3.eth.estimate_gas(transaction)
+        print(f"Estimated gas: {estimated_gas}")
+        transaction['gas'] = estimated_gas  # Apply the estimated gas limit
+
+        # Sign and send the transaction
         signed_txn = w3.eth.account.sign_transaction(transaction, account.key)
         tx_hash = w3.eth.send_raw_transaction(signed_txn.rawTransaction)
         print(f"NFT claim hash: {tx_hash.hex()}")
+
+        # Wait for transaction receipt to check success
+        receipt = w3.eth.wait_for_transaction_receipt(tx_hash)
+        if receipt.status == 1:
+            print("Transaction succeeded")
+        else:
+            print("Transaction failed")
     except Exception as e:
         print(f"Transaction error: {e}")
 
@@ -114,9 +126,9 @@ def main() -> None:
             for i in range(20):
                 claim_nft(w3, account)
                 print(f"{i + 1} claim request sent successfully")
-                time.sleep(random.randint(5, 15))
+                time.sleep(random.randint(5, 15))  # Random delay between claims
             print("Waiting 12 hours cooldown")
-            time.sleep(43260)
+            time.sleep(43260)  # 12 hours + 1 minute cooldown
     else:
         print("Web3 connection failed!")
         print("Check your internet connection")
