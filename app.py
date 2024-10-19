@@ -2,9 +2,12 @@ import random
 import time
 import eth_account.signers.local
 import web3
+import requests
 from web3 import Web3, Account
 from config import RPC_URL, CONTRACT_ADDRESS, CONTRACT_METHOD, CHAIN_ID
 
+# Rivalz API base URL
+API_BASE_URL = "https://api.rivalz.ai/fragment/v2/fragmentz-v2"
 
 def get_logo():
     print("""
@@ -76,6 +79,32 @@ def check_eth_balance(w3: web3.Web3, account: eth_account.signers.local.LocalAcc
         input("Press Enter to start auto-claim")
 
 
+# Fetch fragment balance from Rivalz API
+def get_fragment_balance(address: str) -> int:
+    url = f"{API_BASE_URL}/balance/{address}"
+    response = requests.get(url)
+    if response.status_code == 200:
+        balance_data = response.json()
+        balance = balance_data.get('balance', 0)
+        print(f"Fragment balance for {address}: {balance}")
+        return balance
+    else:
+        print(f"Error fetching balance: {response.status_code}")
+        return 0
+
+
+# Claim fragment using Rivalz API
+def claim_fragment(fragment_id: str) -> bool:
+    url = f"{API_BASE_URL}/claim/{fragment_id}"
+    response = requests.post(url)
+    if response.status_code == 201:
+        print(f"Fragment {fragment_id} successfully claimed!")
+        return True
+    else:
+        print(f"Error claiming fragment {fragment_id}: {response.status_code}")
+        return False
+
+
 def claim_nft(w3: web3.Web3, account: eth_account.signers.local.LocalAccount):
     nonce = w3.eth.get_transaction_count(account.address)
     gas_price = w3.eth.gas_price
@@ -85,7 +114,7 @@ def claim_nft(w3: web3.Web3, account: eth_account.signers.local.LocalAccount):
         'data': CONTRACT_METHOD,
         'chainId': CHAIN_ID,
         'nonce': nonce,
-        'gas': 180000,  # Adjusted gas limit based on trace
+        'gas': 300000,  # Adjusted gas limit based on trace
         'gasPrice': gas_price
     }
     try:
@@ -120,6 +149,13 @@ def main() -> None:
         elif choice == 3:
             account = get_account_from_private_key(w3)
         check_eth_balance(w3, account)
+
+        # Check fragment balance and claim fragments if available
+        balance = get_fragment_balance(account.address)
+        if balance > 0:
+            for i in range(balance):
+                fragment_id = f"fragment_{i}"  # You need to get the actual fragment ID from your API logic
+                claim_fragment(fragment_id)
 
         while True:
             print("Starting claim process")
