@@ -85,7 +85,7 @@ def claim_nft(w3: web3.Web3, account: eth_account.signers.local.LocalAccount):
         'data': CONTRACT_METHOD,
         'chainId': CHAIN_ID,
         'nonce': nonce,
-        'gas': 300000,  # Adjusted gas limit based on trace
+        'gas': 180000,  # Adjusted gas limit based on trace
         'gasPrice': gas_price
     }
     try:
