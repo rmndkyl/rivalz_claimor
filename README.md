@@ -17,7 +17,8 @@
 <code>pip install -r requirements.txt</code>
 ### Run the script
 <code>python app.py</code></br>
-![image](https://github.com/user-attachments/assets/4c8f11ea-62a9-487c-bacd-6f4bec423f90)
+![image](https://github.com/user-attachments/assets/ddafc498-05f5-47ab-a4a0-804587ff2f65)
+
 
 # What it does::
 1. Claims to your wallet (you will need to enter your seed phrase or privatekey)</br>
